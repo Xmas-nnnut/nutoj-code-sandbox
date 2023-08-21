@@ -4,6 +4,7 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.resource.ResourceUtil;
 import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.dfa.WordTree;
 import com.xqj.nutojcodesandbox.model.ExecuteCodeRequest;
 import com.xqj.nutojcodesandbox.model.ExecuteCodeResponse;
 import com.xqj.nutojcodesandbox.model.ExecuteMessage;
@@ -20,8 +21,24 @@ import java.util.List;
 public class JavaNativeCodeSandbox implements CodeSandbox {
 
     public static final String GLOBAL_CODE_DIR_NAME = "tmpCode";
+
     public static final String GLOBAL_JAVA_CLASS_NAME = "Main.java";
+
     private static final long TIME_OUT = 5000L;
+
+    private static final String SECURITY_MANAGER_PATH = "nutoj-code-sandbox/src/main/resources/security";
+
+    private static final String SECURITY_MANAGER_CLASS_NAME = "MySecurityManager";
+
+    private static final List<String> blackList = Arrays.asList("Files", "exec");
+
+    private static final WordTree WORD_TREE;
+
+    static {
+        // 初始化字典树
+        WORD_TREE = new WordTree();
+        WORD_TREE.addWords(blackList);
+    }
 
     public static void main(String[] args) {
         JavaNativeCodeSandbox javaNativeCodeSandbox = new JavaNativeCodeSandbox();
@@ -30,6 +47,8 @@ public class JavaNativeCodeSandbox implements CodeSandbox {
         String code = ResourceUtil.readStr("testCode/simpleComputeArgs/Main.java", StandardCharsets.UTF_8);
 //        // 交互式进程
 //        String code = ResourceUtil.readStr("testCode/simpleCompute/Main.java", StandardCharsets.UTF_8);
+//        // 测试安全
+//        String code = ResourceUtil.readStr("testCode/unsafeCode/RunFileError.java", StandardCharsets.UTF_8);
         executeCodeRequest.setCode(code);
         executeCodeRequest.setLanguage("java");
         ExecuteCodeResponse executeCodeResponse = javaNativeCodeSandbox.executeCode(executeCodeRequest);
@@ -78,7 +97,10 @@ public class JavaNativeCodeSandbox implements CodeSandbox {
         //3. 执行代码，得到输出结果
         List<ExecuteMessage> executeMessageList = new ArrayList<>();
         for (String inputArgs : inputList){
-            String runCmd = String.format("java -Dfile.encoding=UTF-8 -cp %s Main %s", userCodeParentPath, inputArgs);
+//            String runCmd = String.format("java -Dfile.encoding=UTF-8 -cp %s Main %s", userCodeParentPath, inputArgs);
+            String runCmd = String.format("java -Xmx256m -Dfile.encoding=UTF-8 -cp %s;%s -Djava.security.manager=%s Main %s",
+                    userCodeParentPath, SECURITY_MANAGER_PATH, SECURITY_MANAGER_CLASS_NAME, inputArgs);
+
             try {
                 Process runProcess = Runtime.getRuntime().exec(runCmd);
 
