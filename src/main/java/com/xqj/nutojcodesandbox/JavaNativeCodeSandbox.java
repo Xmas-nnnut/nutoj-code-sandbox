@@ -26,7 +26,7 @@ public class JavaNativeCodeSandbox implements CodeSandbox {
 
     private static final long TIME_OUT = 5000L;
 
-    private static final String SECURITY_MANAGER_PATH = "nutoj-code-sandbox/src/main/resources/security";
+    private static final String SECURITY_MANAGER_PATH = "src/main/resources/security/MySecurityManager.java";
 
     private static final String SECURITY_MANAGER_CLASS_NAME = "MySecurityManager";
 

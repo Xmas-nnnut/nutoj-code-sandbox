@@ -1,5 +1,3 @@
-package testCode.unsafe;
-
 /**
  * 无限睡眠（阻塞程序执行）
  */
