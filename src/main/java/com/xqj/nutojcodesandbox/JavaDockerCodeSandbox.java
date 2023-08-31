@@ -35,7 +35,7 @@ public class JavaDockerCodeSandbox implements CodeSandbox {
 
     private static final long TIME_OUT = 5000L;
 
-    private static final String SECURITY_MANAGER_PATH = "C:\\code\\yuoj-code-sandbox\\src\\main\\resources\\security";
+    private static final String SECURITY_MANAGER_PATH = "src/main/resources/security/MySecurityManager.java";
 
     private static final String SECURITY_MANAGER_CLASS_NAME = "MySecurityManager";
 
@@ -120,7 +120,8 @@ public class JavaDockerCodeSandbox implements CodeSandbox {
         hostConfig.withMemory(100 * 1000 * 1000L);
         hostConfig.withMemorySwap(0L);
         hostConfig.withCpuCount(1L);
-        hostConfig.withSecurityOpts(Arrays.asList("seccomp=安全管理配置字符串"));
+//        hostConfig.withSecurityOpts(Arrays.asList("seccomp=安全管理配置字符串"));
+        //映射路径
         hostConfig.setBinds(new Bind(userCodeParentPath, new Volume("/app")));
         CreateContainerResponse createContainerResponse = containerCmd
                 .withHostConfig(hostConfig)
@@ -141,7 +142,9 @@ public class JavaDockerCodeSandbox implements CodeSandbox {
         // 执行命令并获取结果
         List<ExecuteMessage> executeMessageList = new ArrayList<>();
         for (String inputArgs : inputList) {
+            //时间记录开始
             StopWatch stopWatch = new StopWatch();
+            //空格拆封
             String[] inputArgsArray = inputArgs.split(" ");
             String[] cmdArray = ArrayUtil.append(new String[]{"java", "-cp", "/app", "Main"}, inputArgsArray);
             ExecCreateCmdResponse execCreateCmdResponse = dockerClient.execCreateCmd(containerId)
@@ -159,6 +162,7 @@ public class JavaDockerCodeSandbox implements CodeSandbox {
             // 判断是否超时
             final boolean[] timeout = {true};
             String execId = execCreateCmdResponse.getId();
+            // todo:判断
             ExecStartResultCallback execStartResultCallback = new ExecStartResultCallback() {
                 @Override
                 public void onComplete() {
