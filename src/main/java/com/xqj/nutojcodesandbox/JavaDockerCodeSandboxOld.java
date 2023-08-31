@@ -218,8 +218,8 @@ public class JavaDockerCodeSandboxOld implements CodeSandbox {
                 stopWatch.start();
                 dockerClient.execStartCmd(execId)
                         .exec(execStartResultCallback)
-                        .awaitCompletion(TIME_OUT, TimeUnit.MICROSECONDS);
-                //阻塞程序持续完成
+                        .awaitCompletion();//阻塞程序持续完成
+//                        .awaitCompletion(TIME_OUT, TimeUnit.MICROSECONDS);
                 stopWatch.stop();
                 time = stopWatch.getLastTaskTimeMillis();
                 statsCmd.close();
