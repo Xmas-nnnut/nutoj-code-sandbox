@@ -1,15 +1,19 @@
 package com.xqj.nutojcodesandbox.utils;
 
-import cn.hutool.core.date.StopWatch;
 import cn.hutool.core.util.StrUtil;
 import com.xqj.nutojcodesandbox.model.ExecuteMessage;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.StopWatch;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 进程工具类
  */
 public class ProcessUtils {
+
 
     /**
      * 执行进程并获取信息
@@ -22,7 +26,7 @@ public class ProcessUtils {
         ExecuteMessage executeMessage = new ExecuteMessage();
 
         try {
-            StopWatch stopWatch = new StopWatch();
+            org.springframework.util.StopWatch stopWatch = new StopWatch();
             stopWatch.start();
             // 等待程序执行，获取错误码
             int exitValue = runProcess.waitFor();
@@ -31,43 +35,41 @@ public class ProcessUtils {
             if (exitValue == 0) {
                 System.out.println(opName + "成功");
                 // 分批获取进程的正常输出
-                // InputStreamReader是进程输入流的读取器, BufferedReader 以成块分批地读取这个输出
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(runProcess.getInputStream()));
-                StringBuilder compileOutputStringBuilder = new StringBuilder();
+                List<String> outputStrList = new ArrayList<>();
                 // 逐行读取
                 String compileOutputLine;
                 while ((compileOutputLine = bufferedReader.readLine()) != null) {
-                    compileOutputStringBuilder.append(compileOutputLine).append("\n");
+                    outputStrList.add(compileOutputLine);
                 }
-                executeMessage.setMessage(compileOutputStringBuilder.toString());
+                executeMessage.setMessage(StringUtils.join(outputStrList, "\n"));
             } else {
                 // 异常退出
                 System.out.println(opName + "失败，错误码： " + exitValue);
                 // 分批获取进程的正常输出
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(runProcess.getInputStream()));
-                StringBuilder compileOutputStringBuilder = new StringBuilder();
+                List<String> outputStrList = new ArrayList<>();
                 // 逐行读取
                 String compileOutputLine;
                 while ((compileOutputLine = bufferedReader.readLine()) != null) {
-                    compileOutputStringBuilder.append(compileOutputLine).append("\n");
+                    outputStrList.add(compileOutputLine);
                 }
-                executeMessage.setMessage(compileOutputStringBuilder.toString());
+                executeMessage.setMessage(StringUtils.join(outputStrList, "\n"));
 
                 // 分批获取进程的错误输出
                 BufferedReader errorBufferedReader = new BufferedReader(new InputStreamReader(runProcess.getErrorStream()));
-                StringBuilder errorCompileOutputStringBuilder = new StringBuilder();
-
+                // 逐行读取
+                List<String> errorOutputStrList = new ArrayList<>();
                 // 逐行读取
                 String errorCompileOutputLine;
                 while ((errorCompileOutputLine = errorBufferedReader.readLine()) != null) {
-                    errorCompileOutputStringBuilder.append(errorCompileOutputLine).append("\n");
+                    errorOutputStrList.add(errorCompileOutputLine);
                 }
-                executeMessage.setErrorMessage(errorCompileOutputStringBuilder.toString());
+                executeMessage.setErrorMessage(StringUtils.join(errorOutputStrList, "\n"));
             }
             stopWatch.stop();
             executeMessage.setTime(stopWatch.getLastTaskTimeMillis());
         } catch (Exception e) {
-            // todo 异常处理
             e.printStackTrace();
         }
         return executeMessage;
@@ -75,7 +77,7 @@ public class ProcessUtils {
 
     /**
      * 执行交互式进程并获取信息
-     * todo：未完善
+     *
      * @param runProcess
      * @param args
      * @return
