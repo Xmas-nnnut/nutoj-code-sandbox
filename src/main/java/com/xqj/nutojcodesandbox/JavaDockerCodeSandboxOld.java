@@ -35,7 +35,7 @@ public class JavaDockerCodeSandboxOld implements CodeSandbox {
 
     private static final long TIME_OUT = 5000L;
 
-    private static final String SECURITY_MANAGER_PATH = "C:\\code\\yuoj-code-sandbox\\src\\main\\resources\\security";
+    private static final String SECURITY_MANAGER_PATH = "nutoj-code-sandbox/src/main/resources/security";
 
     private static final String SECURITY_MANAGER_CLASS_NAME = "MySecurityManager";
 
@@ -113,14 +113,14 @@ public class JavaDockerCodeSandboxOld implements CodeSandbox {
 
         System.out.println("下载完成");
 
-        // 创建容器
-
+        // 创建容器 (具有特定配置)，并将其与主机上的目录进行了绑定。
         CreateContainerCmd containerCmd = dockerClient.createContainerCmd(image);
         HostConfig hostConfig = new HostConfig();
         hostConfig.withMemory(100 * 1000 * 1000L);
         hostConfig.withMemorySwap(0L);
         hostConfig.withCpuCount(1L);
 //        hostConfig.withSecurityOpts(Arrays.asList("seccomp=安全管理配置字符串"));
+        // 与主机上的目录进行绑定
         hostConfig.setBinds(new Bind(userCodeParentPath, new Volume("/app")));
         CreateContainerResponse createContainerResponse = containerCmd
                 .withHostConfig(hostConfig)

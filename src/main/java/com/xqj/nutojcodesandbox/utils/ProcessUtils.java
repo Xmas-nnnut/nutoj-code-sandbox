@@ -14,7 +14,6 @@ import java.util.List;
  */
 public class ProcessUtils {
 
-
     /**
      * 执行进程并获取信息
      *
@@ -26,7 +25,7 @@ public class ProcessUtils {
         ExecuteMessage executeMessage = new ExecuteMessage();
 
         try {
-            org.springframework.util.StopWatch stopWatch = new StopWatch();
+            StopWatch stopWatch = new StopWatch();
             stopWatch.start();
             // 等待程序执行，获取错误码
             int exitValue = runProcess.waitFor();
