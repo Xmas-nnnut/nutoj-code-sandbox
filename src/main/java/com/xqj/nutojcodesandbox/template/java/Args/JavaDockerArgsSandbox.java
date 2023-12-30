@@ -1,6 +1,5 @@
-package com.xqj.nutojcodesandbox;
+package com.xqj.nutojcodesandbox.template.java.Args;
 
-import cn.hutool.core.io.resource.ResourceUtil;
 import cn.hutool.core.util.ArrayUtil;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
@@ -8,57 +7,38 @@ import com.github.dockerjava.api.command.*;
 import com.github.dockerjava.api.model.*;
 import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.core.command.ExecStartResultCallback;
-import com.xqj.nutojcodesandbox.model.ExecuteCodeRequest;
-import com.xqj.nutojcodesandbox.model.ExecuteCodeResponse;
-import com.xqj.nutojcodesandbox.model.ExecuteMessage;
-import org.springframework.stereotype.Component;
+import com.xqj.nutojcodesandbox.model.dto.ExecuteMessage;
+import com.xqj.nutojcodesandbox.template.java.JavaCodeSandboxTemplate;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static com.xqj.nutojcodesandbox.constant.CodeSandboxConstants.TIME_OUT;
 
-@Component
-public class JavaDockerCodeSandbox extends JavaCodeSandboxTemplate {
+@Service
+@Slf4j
+public class JavaDockerArgsSandbox extends JavaCodeSandboxTemplate {
+    private static Boolean FIRST_PULL = true;
 
-    private static final long TIME_OUT = 5000L;
-
-    private static final Boolean FIRST_INIT = true;
-
-    public static void main(String[] args) {
-        JavaDockerCodeSandbox javaNativeCodeSandbox = new JavaDockerCodeSandbox();
-        ExecuteCodeRequest executeCodeRequest = new ExecuteCodeRequest();
-        executeCodeRequest.setInputList(Arrays.asList("1 2", "1 3"));
-        String code = ResourceUtil.readStr("testCode/simpleComputeArgs/Main.java", StandardCharsets.UTF_8);
-//        String code = ResourceUtil.readStr("testCode/unsafeCode/RunFileError.java", StandardCharsets.UTF_8);
-//        String code = ResourceUtil.readStr("testCode/simpleCompute/Main.java", StandardCharsets.UTF_8);
-        executeCodeRequest.setCode(code);
-        executeCodeRequest.setLanguage("java");
-        ExecuteCodeResponse executeCodeResponse = javaNativeCodeSandbox.executeCode(executeCodeRequest);
-        System.out.println(executeCodeResponse);
-    }
-
-    /**
-     * 3、创建容器，把文件复制到容器内
-     * @param userCodeFile
-     * @param inputList
-     * @return
-     */
     @Override
-    public List<ExecuteMessage> runFile(File userCodeFile, List<String> inputList) {
-        String userCodeParentPath = userCodeFile.getParentFile().getAbsolutePath();
+    protected List<ExecuteMessage> runFile(File userCodeFile, List<String> inputList) throws Exception {
+        String dir = userCodeFile.getParentFile().getAbsolutePath();
+
         // 获取默认的 Docker Client
         DockerClient dockerClient = DockerClientBuilder.getInstance().build();
 
+//        //镜像已经提前下载
+//        String image = "openjdk:8-alpine";
         // 拉取镜像
         String image = "openjdk:8-alpine";
-        if (FIRST_INIT) {
+        if (FIRST_PULL) {
             PullImageCmd pullImageCmd = dockerClient.pullImageCmd(image);
             PullImageResultCallback pullImageResultCallback = new PullImageResultCallback() {
                 @Override
@@ -71,6 +51,7 @@ public class JavaDockerCodeSandbox extends JavaCodeSandboxTemplate {
                 pullImageCmd
                         .exec(pullImageResultCallback)
                         .awaitCompletion();
+                FIRST_PULL = false;
             } catch (InterruptedException e) {
                 System.out.println("拉取镜像异常");
                 throw new RuntimeException(e);
@@ -80,14 +61,14 @@ public class JavaDockerCodeSandbox extends JavaCodeSandboxTemplate {
         System.out.println("下载完成");
 
         // 创建容器
-
         CreateContainerCmd containerCmd = dockerClient.createContainerCmd(image);
         HostConfig hostConfig = new HostConfig();
         hostConfig.withMemory(100 * 1000 * 1000L);
         hostConfig.withMemorySwap(0L);
         hostConfig.withCpuCount(1L);
-//        hostConfig.withSecurityOpts(Arrays.asList("seccomp=安全管理配置字符串"));
-        hostConfig.setBinds(new Bind(userCodeParentPath, new Volume("/app")));
+        //        hostConfig.withSecurityOpts(Arrays.asList("seccomp=安全管理配置字符串"));
+        // 与主机上的目录进行绑定
+        hostConfig.setBinds(new Bind(dir, new Volume("/app")));
         CreateContainerResponse createContainerResponse = containerCmd
                 .withHostConfig(hostConfig)
                 .withNetworkDisabled(true)
@@ -129,6 +110,7 @@ public class JavaDockerCodeSandbox extends JavaCodeSandboxTemplate {
                 @Override
                 public void onComplete() {
                     // 如果执行完成，则表示没超时
+                    System.out.println("没有超时");
                     timeout[0] = false;
                     super.onComplete();
                 }
@@ -152,21 +134,19 @@ public class JavaDockerCodeSandbox extends JavaCodeSandboxTemplate {
             // 获取占用的内存
             StatsCmd statsCmd = dockerClient.statsCmd(containerId);
             ResultCallback<Statistics> statisticsResultCallback = statsCmd.exec(new ResultCallback<Statistics>() {
-
-                @Override
-                public void onNext(Statistics statistics) {
-                    System.out.println("内存占用：" + statistics.getMemoryStats().getUsage());
-                    maxMemory[0] = Math.max(statistics.getMemoryStats().getUsage(), maxMemory[0]);
-                }
-
-                @Override
-                public void close() throws IOException {
-
-                }
-
                 @Override
                 public void onStart(Closeable closeable) {
 
+                }
+
+                @Override
+                public void onNext(Statistics statistics) {
+                    Long usage = statistics.getMemoryStats().getUsage();
+                    if (usage == null) {
+                        usage = 0L;
+                    }
+                    log.info("内存占用: {}", usage);
+                    maxMemory[0] = Math.max(maxMemory[0], usage);
                 }
 
                 @Override
@@ -178,14 +158,19 @@ public class JavaDockerCodeSandbox extends JavaCodeSandboxTemplate {
                 public void onComplete() {
 
                 }
+
+                @Override
+                public void close() {
+
+                }
             });
             statsCmd.exec(statisticsResultCallback);
+
             try {
                 stopWatch.start();
                 dockerClient.execStartCmd(execId)
                         .exec(execStartResultCallback)
-                        .awaitCompletion();
-//                        .awaitCompletion(TIME_OUT, TimeUnit.MICROSECONDS);
+                        .awaitCompletion(TIME_OUT, TimeUnit.MICROSECONDS);
                 stopWatch.stop();
                 time = stopWatch.getLastTaskTimeMillis();
                 statsCmd.close();

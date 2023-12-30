@@ -1,14 +1,14 @@
-package com.xqj.nutojcodesandbox;
+package com.xqj.nutojcodesandbox.service.old;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.resource.ResourceUtil;
 import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.dfa.WordTree;
-import com.xqj.nutojcodesandbox.model.ExecuteCodeRequest;
-import com.xqj.nutojcodesandbox.model.ExecuteCodeResponse;
-import com.xqj.nutojcodesandbox.model.ExecuteMessage;
-import com.xqj.nutojcodesandbox.model.JudgeInfo;
+import com.xqj.nutojcodesandbox.model.dto.ExecuteCodeRequest;
+import com.xqj.nutojcodesandbox.model.dto.ExecuteCodeResponse;
+import com.xqj.nutojcodesandbox.model.dto.ExecuteMessage;
+import com.xqj.nutojcodesandbox.model.dto.JudgeInfo;
 import com.xqj.nutojcodesandbox.utils.ProcessUtils;
 
 import java.io.File;
@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+@Deprecated
 public class JavaNativeCodeSandboxOld implements CodeSandbox {
 
     public static final String GLOBAL_CODE_DIR_NAME = "tmpCode";
@@ -97,7 +98,7 @@ public class JavaNativeCodeSandboxOld implements CodeSandbox {
         List<ExecuteMessage> executeMessageList = new ArrayList<>();
         for (String inputArgs : inputList){
             String runCmd = String.format("java -Dfile.encoding=UTF-8 -cp %s Main %s", userCodeParentPath, inputArgs);
-            //todo
+            //todo 安全检查
 //            String runCmd = String.format("java -Xmx256m -Dfile.encoding=UTF-8 -cp %s;%s -Djava.security.manager=%s Main %s",
 //                    userCodeParentPath, SECURITY_MANAGER_PATH, SECURITY_MANAGER_CLASS_NAME, inputArgs);
 

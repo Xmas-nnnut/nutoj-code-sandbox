@@ -1,4 +1,4 @@
-package com.xqj.nutojcodesandbox.model;
+package com.xqj.nutojcodesandbox.model.dto;
 
 import lombok.Data;
 
@@ -8,14 +8,29 @@ import lombok.Data;
 @Data
 public class ExecuteMessage {
 
+    /**
+     * 退出码
+     */
     private Integer exitValue;
 
+    /**
+     * 正常信息
+     */
     private String message;
 
+    /**
+     * 错误信息
+     */
     private String errorMessage;
 
+    /**
+     * 运行时间
+     */
     private Long time;
 
+    /**
+     * 消耗内存
+     */
     private Long memory;
 
 }

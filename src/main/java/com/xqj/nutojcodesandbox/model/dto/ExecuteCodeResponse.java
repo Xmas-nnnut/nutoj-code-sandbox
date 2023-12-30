@@ -1,4 +1,4 @@
-package com.xqj.nutojcodesandbox.model;
+package com.xqj.nutojcodesandbox.model.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
