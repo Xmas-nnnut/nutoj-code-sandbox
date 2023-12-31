@@ -41,11 +41,14 @@ public class CodeSandboxController {
 //            response.setStatus(403);
 //            return null;
 //        }
-        executeCodeRequest.setCode("public class Main {\n" +
-                "    public static void main(String[] args) {\n" +
-                "        int a = Integer.parseInt(args[0]);\n" +
-                "        int b = Integer.parseInt(args[1]);\n" +
-                "        System.out.println((a + b));\n" +
+        executeCodeRequest.setCode("import java.io.*;\n" +
+                "import java.util.*;\n" +
+                "\n" +
+                "public class Main {\n" +
+                "    public static void main(String[] args) throws Exception{\n" +
+                "        Scanner cin = new Scanner(System.in);\n" +
+                "        int a = cin.nextInt(), b = cin.nextInt();\n" +
+                "        System.out.println(\"交互式进程结果:\" + (a + b));\n" +
                 "    }\n" +
                 "}");
         if (executeCodeRequest == null) {
