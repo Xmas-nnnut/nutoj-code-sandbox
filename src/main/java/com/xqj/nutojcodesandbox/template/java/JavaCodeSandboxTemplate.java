@@ -100,7 +100,7 @@ public abstract class JavaCodeSandboxTemplate {
         try {
             Process compileProcess = Runtime.getRuntime().exec(compileCmd);
             ExecuteMessage executeMessage = ProcessUtils.getProcessMessage(compileProcess, "编译");
-            if (executeMessage.getExitValue() != 0) {
+            if (executeMessage.getExitCode() != 0) {
                 throw new RuntimeException("编译错误");
             }
             return executeMessage;

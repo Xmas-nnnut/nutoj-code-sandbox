@@ -13,6 +13,9 @@ import java.util.List;
 @AllArgsConstructor
 public class ExecuteCodeResponse {
 
+    /**
+     * 一组输出
+     */
     private List<String> outputList;
 
     /**

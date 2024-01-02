@@ -1,10 +1,11 @@
-import java.io.*;
-import java.util.*;
-
+import java.util.Scanner;
 public class Main {
-    public static void main(String[] args) throws Exception{
-        Scanner cin = new Scanner(System.in);
-        int a = cin.nextInt(), b = cin.nextInt();
-        System.out.println("交互式进程结果:" + (a + b));
+    public static void main(String[] args) {
+        Scanner in = new Scanner(System.in);
+        while (in.hasNextInt()) {
+            int a = in.nextInt();
+            int b = in.nextInt();
+            System.out.println(a + b);
+        }
     }
 }

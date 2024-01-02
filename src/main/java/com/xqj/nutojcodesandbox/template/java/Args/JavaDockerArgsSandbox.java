@@ -3,31 +3,22 @@ package com.xqj.nutojcodesandbox.template.java.Args;
 import cn.hutool.core.io.resource.ResourceUtil;
 import cn.hutool.core.util.ArrayUtil;
 import com.github.dockerjava.api.DockerClient;
-import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.*;
 import com.github.dockerjava.api.model.*;
 import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.core.InvocationBuilder;
 import com.github.dockerjava.core.command.ExecStartResultCallback;
-import com.xqj.nutojcodesandbox.model.dto.ExecuteCodeRequest;
 import com.xqj.nutojcodesandbox.model.dto.ExecuteCodeResponse;
 import com.xqj.nutojcodesandbox.model.dto.ExecuteMessage;
 import com.xqj.nutojcodesandbox.template.java.JavaCodeSandboxTemplate;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
-import java.io.Closeable;
 import java.io.File;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static com.xqj.nutojcodesandbox.constant.CodeSandboxConstants.*;
@@ -54,11 +45,11 @@ public class JavaDockerArgsSandbox extends JavaCodeSandboxTemplate {
         // 1、拉取镜像（镜像不存在）
         List<Image> images = dockerClient.listImagesCmd().exec();
         boolean imageExists = images.stream()
-                .anyMatch(image -> Arrays.asList(image.getRepoTags()).contains(IMAGE_NAME));
+                .anyMatch(image -> Arrays.asList(image.getRepoTags()).contains(JAVA_IMAGE_NAME));
 
         if (!imageExists) {
             // 拉取镜像
-            PullImageCmd pullImageCmd = dockerClient.pullImageCmd(IMAGE_NAME);
+            PullImageCmd pullImageCmd = dockerClient.pullImageCmd(JAVA_IMAGE_NAME);
             PullImageResultCallback pullImageResultCallback = new PullImageResultCallback() {
                 @Override
                 public void onNext(PullResponseItem item) {
@@ -81,7 +72,7 @@ public class JavaDockerArgsSandbox extends JavaCodeSandboxTemplate {
         }
 
         // 2、创建容器
-        CreateContainerCmd containerCmd = dockerClient.createContainerCmd(IMAGE_NAME);
+        CreateContainerCmd containerCmd = dockerClient.createContainerCmd(JAVA_IMAGE_NAME);
         HostConfig hostConfig = new HostConfig();
         hostConfig.withMemory(100 * 1000 * 1000L);
         hostConfig.withMemorySwap(0L);

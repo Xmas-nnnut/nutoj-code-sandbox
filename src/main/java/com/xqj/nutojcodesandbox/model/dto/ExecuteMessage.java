@@ -1,17 +1,23 @@
 package com.xqj.nutojcodesandbox.model.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * 进程执行信息
  */
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ExecuteMessage {
 
     /**
      * 退出码
      */
-    private Integer exitValue;
+    private Integer exitCode;
 
     /**
      * 正常信息

@@ -17,6 +17,73 @@ import java.util.List;
 public class ProcessUtils {
 
     /**
+     * 运行进程操作
+     * @param runProcess
+     * @param input
+     * @param operationName
+     * @return
+     */
+    public static ExecuteMessage handleProcessInteraction(Process runProcess, String input, String operationName) {
+        OutputStream outputStream = runProcess.getOutputStream();
+        try {
+            outputStream.write((input + "\n").getBytes());
+            outputStream.flush();
+            outputStream.close();
+            return handleProcessMessage(runProcess, operationName);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                outputStream.close();
+            } catch (IOException e) {
+                log.error("关闭输入流失败");
+            }
+        }
+    }
+
+    /**
+     * 获取进程信息
+     *
+     * @param runProcess    运行进程
+     * @param operationName 操作名称
+     * @return {@link ExecuteMessage}
+     */
+    public static ExecuteMessage handleProcessMessage(Process runProcess, String operationName) {
+        int exitCode;
+        StringBuilder output = new StringBuilder();
+        StringBuilder errorOutput = new StringBuilder();
+        try {
+            exitCode = runProcess.waitFor();
+            if (exitCode == 0) {
+                log.info(operationName + "成功");
+            } else {
+                log.error(operationName + "失败，错误码为: {}", exitCode);
+                BufferedReader errorBufferedReader = new BufferedReader(new InputStreamReader(runProcess.getErrorStream()));
+                String errorRunOutputLine;
+                while ((errorRunOutputLine = errorBufferedReader.readLine()) != null) {
+                    errorOutput.append(errorRunOutputLine);
+                }
+                log.error("错误输出为：{}", errorOutput);
+            }
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(runProcess.getInputStream()));
+            String runOutputLine;
+            while ((runOutputLine = bufferedReader.readLine()) != null) {
+                output.append(runOutputLine);
+            }
+            if (StrUtil.isNotBlank(output)) {
+                log.info("正常输出：{}", output);
+            }
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        return ExecuteMessage.builder()
+                .exitCode(exitCode)
+                .message(output.toString())
+                .errorMessage(errorOutput.toString())
+                .build();
+    }
+
+    /**
      * 获取进程执行信息
      * @param process
      * @return
@@ -30,10 +97,10 @@ public class ProcessUtils {
             stopWatch.start();
 
             // 等待程序执行，获取退出码
-            int exitValue = process.waitFor();
-            executeMessage.setExitValue(exitValue);
+            int exitCode = process.waitFor();
+            executeMessage.setExitCode(exitCode);
             // 错误退出
-            if(exitValue != 0){
+            if(exitCode != 0){
                 executeMessage.setErrorMessage(getProcessOutput(process.getErrorStream()));
             } else {
                 executeMessage.setMessage(getProcessOutput(process.getInputStream()));
@@ -122,7 +189,7 @@ public class ProcessUtils {
     }
 
     /**
-     * 执行进程并获取信息(old)
+     * 执行进程并获取信息(deprecated)
      *
      * @param runProcess
      * @param opName
@@ -135,10 +202,10 @@ public class ProcessUtils {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
             // 等待程序执行，获取错误码
-            int exitValue = runProcess.waitFor();
-            executeMessage.setExitValue(exitValue);
+            int exitCode = runProcess.waitFor();
+            executeMessage.setExitCode(exitCode);
             // 正常退出
-            if (exitValue == 0) {
+            if (exitCode == 0) {
                 System.out.println(opName + "成功");
                 // 分批获取进程的正常输出
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(runProcess.getInputStream()));
@@ -151,7 +218,7 @@ public class ProcessUtils {
                 executeMessage.setMessage(StringUtils.join(outputStrList, "\n"));
             } else {
                 // 异常退出
-                System.out.println(opName + "失败，错误码： " + exitValue);
+                System.out.println(opName + "失败，错误码： " + exitCode);
                 // 分批获取进程的正常输出
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(runProcess.getInputStream()));
                 List<String> outputStrList = new ArrayList<>();
@@ -182,7 +249,7 @@ public class ProcessUtils {
     }
 
     /**
-     * 执行交互式进程并获取信息(old)
+     * 执行交互式进程并获取信息(deprecated)
      *
      * @param runProcess
      * @param args

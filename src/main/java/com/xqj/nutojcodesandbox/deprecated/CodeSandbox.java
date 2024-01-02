@@ -1,4 +1,4 @@
-package com.xqj.nutojcodesandbox.service.old;
+package com.xqj.nutojcodesandbox.deprecated;
 
 import com.xqj.nutojcodesandbox.model.dto.ExecuteCodeRequest;
 import com.xqj.nutojcodesandbox.model.dto.ExecuteCodeResponse;

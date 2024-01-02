@@ -1,4 +1,4 @@
-package com.xqj.nutojcodesandbox.service.old;
+package com.xqj.nutojcodesandbox.deprecated;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.resource.ResourceUtil;
