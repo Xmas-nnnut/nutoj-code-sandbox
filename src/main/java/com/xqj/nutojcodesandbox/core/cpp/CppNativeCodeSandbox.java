@@ -17,7 +17,7 @@ public class CppNativeCodeSandbox extends CodeSandboxTemplate {
 
     private static final String GLOBAL_CODE_DIR_PATH = File.separator + "tmpCode";
 
-    private static final String GLOBAL_CPP_NAME = File.separator + "Main.cpp";
+    private static final String GLOBAL_CPP_NAME = File.separator + "main.cpp";
 
     public CppNativeCodeSandbox() {
         super.prefix = PREFIX;
